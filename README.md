@@ -1,6 +1,6 @@
 # ai-passport-magpie
 
-在 FoloToy AI Passport 上显示这台 Mac 上 Magpie 统计的 Token 用量。卡片上、下键切换今天、近 7 天和近 30 天，确定键回到今天。卡片显示上次同步时间和用量来源状态。
+在 FoloToy AI Passport 上显示这台 Mac 上 Magpie 统计的 Token 用量。卡片首页「Token 用量」用万或亿显示所选时段的大数字，下方保留完整数值、今日明细和同步时间。上、下键切换今天、近 7 天和近 30 天，确定键回到今天。
 
 ## Magpie 页内插件
 
@@ -27,7 +27,7 @@ python3 -B bridge/passport_bridge.py
 ```
 
 - 用 `--preview` 在终端查看真实用量 JSON。这个模式无需连接卡片。
-- 用 `--scan` 列出附近的用量牌。如果同时发现多个，用 `--device UUID` 按扫描结果选定卡片。
+- 用 `--scan` 列出附近的用量牌。蓝牙设备名为 `FoloToy AI Passport`。如果同时发现多个，用 `--device UUID` 按扫描结果选定卡片。
 - 用 `--once` 同步一次并等待设备确认。
 - 桥接默认识别 `/Applications/magpie.app` 或 PATH 中的 `magpie`。可用 `--magpie /path/to/magpie` 指定另一个 CLI。
 

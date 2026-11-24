@@ -5,7 +5,7 @@ import Foundation
 private let serviceID = CBUUID(string: "D1749A01-65B4-46F7-A6BA-DA9D2AB61750")
 private let writeID = CBUUID(string: "D1749A02-65B4-46F7-A6BA-DA9D2AB61750")
 private let notifyID = CBUUID(string: "D1749A03-65B4-46F7-A6BA-DA9D2AB61750")
-private let deviceName = "Magpie Passport"
+private let deviceName = "FoloToy AI Passport"
 
 private func emit(_ line: String, to file: FileHandle = .standardOutput) {
     file.write(Data((line + "\n").utf8))
@@ -79,7 +79,7 @@ private final class Transport: NSObject, CBCentralManagerDelegate, CBPeripheralD
     private let command: Command
     private var phase = Phase.starting
     private var central: CBCentralManager!
-    private var candidates: [UUID: CBPeripheral] = [:]
+    private var candidates: [UUID: (peripheral: CBPeripheral, name: String)] = [:]
     private var peer: CBPeripheral?
     private var writer: CBCharacteristic?
     private var transfer: Transfer?
@@ -123,7 +123,7 @@ private final class Transport: NSObject, CBCentralManagerDelegate, CBPeripheralD
         case .poweredOff:
             fail("Bluetooth is off. Turn it on in System Settings.")
         case .unauthorized:
-            fail("Allow Magpie Passport BLE to use Bluetooth in System Settings → Privacy & Security → Bluetooth.", status: 3)
+            fail("Allow AI Passport BLE to use Bluetooth in System Settings → Privacy & Security → Bluetooth.", status: 3)
         case .unsupported:
             fail("This Mac does not support Bluetooth Low Energy.", status: 3)
         case .resetting, .unknown:
@@ -137,26 +137,34 @@ private final class Transport: NSObject, CBCentralManagerDelegate, CBPeripheralD
                         advertisementData: [String: Any], rssi: NSNumber) {
         guard phase == .scanning,
               (advertisementData[CBAdvertisementDataIsConnectable] as? Bool) != false else { return }
-        candidates[peripheral.identifier] = peripheral
+        let name = advertisementData[CBAdvertisementDataLocalNameKey] as? String
+            ?? candidates[peripheral.identifier]?.name ?? peripheral.name ?? "(name unavailable)"
+        candidates[peripheral.identifier] = (peripheral, name)
     }
 
     private func finishScan() {
         guard phase == .scanning else { return }
         central.stopScan()
         let identifiers = candidates.keys.sorted { $0.uuidString < $1.uuidString }
+        let devices = identifiers.compactMap { id in
+            candidates[id].map { candidate in
+                let name = candidate.name.components(separatedBy: .controlCharacters).joined(separator: " ")
+                return "\(id.uuidString)\t\(name)"
+            }
+        }
         if command.scanOnly {
             if identifiers.isEmpty {
-                emit("No Magpie Passports found. Turn on a Passport running the Magpie BLE firmware.", to: .standardError)
+                emit("No \(deviceName) found. Turn on a Passport running the token usage firmware.", to: .standardError)
             }
-            for id in identifiers { emit("\(id.uuidString)\t\(deviceName)") }
+            for device in devices { emit(device) }
             exit(0)
         }
         if command.device == nil && identifiers.count > 1 {
-            for id in identifiers { emit("  \(id.uuidString)\t\(deviceName)", to: .standardError) }
-            fail("Multiple Magpie Passports found. Specify one with --device UUID.", status: 2)
+            for device in devices { emit("  \(device)", to: .standardError) }
+            fail("Multiple Passport devices found. Specify one with --device UUID.", status: 2)
         }
-        guard let id = command.device ?? identifiers.first, let candidate = candidates[id] else {
-            fail("No matching Magpie Passport found. Turn on the device and check its BLE firmware.")
+        guard let id = command.device ?? identifiers.first, let candidate = candidates[id]?.peripheral else {
+            fail("No matching \(deviceName) found. Turn on the device and check its BLE firmware.")
         }
         phase = .connecting
         peer = candidate
@@ -170,17 +178,17 @@ private final class Transport: NSObject, CBCentralManagerDelegate, CBPeripheralD
     }
 
     func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
-        if peripheral === peer { fail("Could not connect to the Magpie Passport over Bluetooth.") }
+        if peripheral === peer { fail("Could not connect to the \(deviceName) over Bluetooth.") }
     }
 
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
-        if peripheral === peer { fail("Magpie Passport Bluetooth connection ended.") }
+        if peripheral === peer { fail("\(deviceName) Bluetooth connection ended.") }
     }
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
         guard peripheral === peer else { return }
         guard error == nil, let service = peripheral.services?.first(where: { $0.uuid == serviceID }) else {
-            fail("The Magpie Passport usage service is unavailable.")
+            fail("The Passport token usage service is unavailable.")
         }
         peripheral.discoverCharacteristics([writeID, notifyID], for: service)
     }
@@ -192,7 +200,7 @@ private final class Transport: NSObject, CBCentralManagerDelegate, CBPeripheralD
               request.properties.contains(.write),
               let reply = service.characteristics?.first(where: { $0.uuid == notifyID }),
               reply.properties.contains(.notify) else {
-            fail("Magpie Passport has an incompatible Bluetooth usage service.")
+            fail("The Passport has an incompatible Bluetooth usage service.")
         }
         writer = request
         peripheral.setNotifyValue(true, for: reply)
@@ -206,7 +214,7 @@ private final class Transport: NSObject, CBCentralManagerDelegate, CBPeripheralD
             return
         }
         guard error == nil, characteristic.isNotifying else {
-            fail("Could not subscribe to Magpie Passport Bluetooth notifications.")
+            fail("Could not subscribe to Passport Bluetooth notifications.")
         }
         if phase == .connecting {
             phase = .probing
@@ -234,7 +242,7 @@ private final class Transport: NSObject, CBCentralManagerDelegate, CBPeripheralD
     private func begin(_ line: String, reply: String) {
         transfer = Transfer(line: line, reply: reply)
         if phase == .ready {
-            let timeout = DispatchWorkItem { [weak self] in self?.fail("Magpie Passport did not acknowledge the update.") }
+            let timeout = DispatchWorkItem { [weak self] in self?.fail("The Passport did not acknowledge the update.") }
             transferTimeout = timeout
             DispatchQueue.main.asyncAfter(deadline: .now() + 7, execute: timeout)
         }
@@ -252,7 +260,7 @@ private final class Transport: NSObject, CBCentralManagerDelegate, CBPeripheralD
             if phase == .probing && needsPairing(error) {
                 retryPairing { [weak self] in self?.writeNext() }
             } else {
-                fail("Magpie Passport rejected the Bluetooth write.")
+                fail("The Passport rejected the Bluetooth write.")
             }
             return
         }
@@ -264,7 +272,7 @@ private final class Transport: NSObject, CBCentralManagerDelegate, CBPeripheralD
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         guard peripheral === peer, characteristic.uuid == notifyID, let current = transfer else { return }
         guard error == nil, let bytes = characteristic.value else {
-            fail("Could not read a Magpie Passport Bluetooth notification.")
+            fail("Could not read a Passport Bluetooth notification.")
         }
         if notifications.receive(Array(bytes)).contains(current.reply) {
             transfer?.notified = true
@@ -294,14 +302,14 @@ private final class Transport: NSObject, CBCentralManagerDelegate, CBPeripheralD
             fail("Could not read from the Magpie bridge.")
         }
         for line in input.receive(Array(buffer.prefix(size))) {
-            guard phase == .ready, transfer == nil else { fail("Magpie Passport is not ready for another update.", status: 2) }
+            guard phase == .ready, transfer == nil else { fail("The Passport is not ready for another update.", status: 2) }
             guard line == "MPU1,ERR" || line.hasPrefix("MPU1,OK,") else { fail("Invalid Magpie bridge frame.", status: 2) }
             begin(line, reply: "MPU1,ACK")
         }
     }
 }
 
-private let usage = "Usage: magpie-passport-ble [--scan | --device UUID]"
+private let usage = "Usage: ai-passport-ble [--scan | --device UUID]"
 private let arguments = Array(CommandLine.arguments.dropFirst())
 if arguments == ["--help"] || arguments == ["-h"] {
     emit(usage)

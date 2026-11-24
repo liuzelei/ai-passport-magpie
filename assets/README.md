@@ -17,6 +17,34 @@ Store reusable font files and generated font sources in `fonts/`.
 - Check Flash and internal-RAM impact before adding a font; the ESP32-C3 has no PSRAM.
 - Do not commit fonts whose license does not permit redistribution.
 
+### Magpie dashboard
+
+[`magpie_cjk_14.c`](fonts/magpie_cjk_14.c) and [`magpie_cjk_22.c`](fonts/magpie_cjk_22.c)
+are uncompressed A4 bitmap subsets, compiled into the main firmware component. The 14 px
+face is for labels and details with a 17 px line height. The 22 px face is for the title,
+pairing display and count units with a 26 px line height. Both include printable ASCII.
+The [character inventory](fonts/magpie_glyphs.txt) lists the dashboard text and units for
+each size.
+
+The source is [Noto Sans CJK SC Regular 2.004](https://github.com/notofonts/noto-cjk/blob/523d033d6cb47f4a80c58a35753646f5c3608a78/Sans/OTF/SimplifiedChinese/NotoSansCJKsc-Regular.otf).
+Copyright 2014–2021 Adobe. The generated subsets are distributed under
+[SIL Open Font License 1.1](fonts/OFL-NotoSansCJKsc.txt). The source OTF is downloaded
+only for regeneration. The generator checks its SHA-256 and verifies every requested
+code point against its cmap.
+
+To regenerate from the repository root, download the source OTF linked above and use
+Pillow 12.2.0 with FreeType 2.14.3 and fonttools 4.62.1:
+
+```sh
+uv --no-config run --default-index https://pypi.org/simple --python 3.13 \
+  --with pillow==12.2.0 --with fonttools==4.62.1 \
+  python assets/fonts/generate_magpie_fonts.py /path/to/NotoSansCJKsc-Regular.otf
+```
+
+Add `--check` to compare with the generated files without rewriting them. Run
+`python3 tools/check_glyphs.py` to check the firmware's text against the generated
+font cmaps.
+
 ## Images
 
 Store reusable source images and generated display assets in `images/`.

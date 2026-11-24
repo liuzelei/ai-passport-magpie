@@ -1,0 +1,9 @@
+# Each section names a pixel size. Printable ASCII is included at both sizes.
+[14]
+今日 近7日 近30日 今日明细 输入 输出 缓存
+等待连接 已连接 连接断开 同步暂停 数据过期 蓝牙不可用 同步
+长按确定键配对 启动 Mac 桥接程序 在 Mac 输入配对码
+万 亿 京
+
+[22]
+Token 用量 蓝牙配对 万 亿 京

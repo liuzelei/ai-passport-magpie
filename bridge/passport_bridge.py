@@ -147,7 +147,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     modes = parser.add_mutually_exclusive_group()
     modes.add_argument("--preview", action="store_true", help="print aggregate counts without accessing Bluetooth")
-    modes.add_argument("--scan", action="store_true", help="list Magpie Passport devices advertising over Bluetooth")
+    modes.add_argument("--scan", action="store_true", help="list advertising FoloToy AI Passport token displays")
     modes.add_argument("--once", action="store_true", help="send one snapshot and require a device acknowledgement")
     parser.add_argument("--device", type=UUID, help="select a Passport by the UUID shown by --scan")
     parser.add_argument("--magpie", help="path to a Magpie executable, bypassing the default local API")

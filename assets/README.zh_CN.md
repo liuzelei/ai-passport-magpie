@@ -15,6 +15,30 @@
 - 添加字库前评估 Flash 与内部 RAM 影响；ESP32-C3 无 PSRAM。
 - 不提交许可不允许分发的字库。
 
+### Magpie 用量牌
+
+[`magpie_cjk_14.c`](fonts/magpie_cjk_14.c) 和 [`magpie_cjk_22.c`](fonts/magpie_cjk_22.c)
+是编入主固件组件的未压缩 A4 位图子集。14 px 字体用于标签与明细，行高为 17 px。
+22 px 字体用于标题、配对界面和计数单位，行高为 26 px。两款字体均覆盖可打印的 ASCII 字符。
+[字符清单](fonts/magpie_glyphs.txt) 记录各字号的界面文本和单位。
+
+源字体是 [Noto Sans CJK SC Regular 2.004](https://github.com/notofonts/noto-cjk/blob/523d033d6cb47f4a80c58a35753646f5c3608a78/Sans/OTF/SimplifiedChinese/NotoSansCJKsc-Regular.otf)。
+版权归 Adobe 所有（2014–2021 年）。生成的字体子集按
+[SIL Open Font License 1.1](fonts/OFL-NotoSansCJKsc.txt) 分发。源 OTF 仅在重新生成时下载。
+生成程序校验源文件的 SHA-256，并用源字体的码点映射核对每个所需字符。
+
+重新生成时，先下载上述源 OTF，然后在仓库根目录使用 Pillow 12.2.0、FreeType 2.14.3
+和 fonttools 4.62.1 执行：
+
+```sh
+uv --no-config run --default-index https://pypi.org/simple --python 3.13 \
+  --with pillow==12.2.0 --with fonttools==4.62.1 \
+  python assets/fonts/generate_magpie_fonts.py /path/to/NotoSansCJKsc-Regular.otf
+```
+
+追加 `--check` 可以比对已生成的文件。运行 `python3 tools/check_glyphs.py` 可用生成的字体码点映射
+检查固件界面文案。
+
 ## 图片（images）
 
 可复用的源图与生成的显示资产放在 `images/`。

@@ -17,7 +17,7 @@
 #include "services/gatt/ble_svc_gatt.h"
 
 static const char *const TAG = "magpie_ble";
-static const char DEVICE_NAME[] = "Magpie Passport";
+static const char DEVICE_NAME[] = "FoloToy AI Passport";
 static const uint32_t PAIRING_WINDOW_MS = 60000;
 
 /* UUID D1749A01/02/03-65B4-46F7-A6BA-DA9D2AB61750 in NimBLE byte order. */
