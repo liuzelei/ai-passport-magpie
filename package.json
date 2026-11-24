@@ -1,0 +1,21 @@
+{
+  "name": "ai-passport-magpie",
+  "version": "0.1.0",
+  "description": "A token usage page for Magpie and a Bluetooth LE companion for FoloToy AI Passport",
+  "license": "MIT",
+  "files": [
+    "magpie-plugin/index.html",
+    "magpie-plugin/usage.css",
+    "magpie-plugin/usage.js"
+  ],
+  "scripts": {
+    "test": "node --test magpie-plugin/usage.test.cjs"
+  },
+  "magpie": {
+    "page": {
+      "title": "ai-passport-magpie",
+      "file": "magpie-plugin/index.html"
+    },
+    "permissions": ["usage:day"]
+  }
+}

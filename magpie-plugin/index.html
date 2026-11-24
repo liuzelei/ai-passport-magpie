@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Token Usage Badge</title>
+  <link rel="stylesheet" href="usage.css">
+  <script src="_magpie/bridge.js"></script>
+  <script src="usage.js" defer></script>
+</head>
+<body>
+  <main class="dashboard">
+    <header class="page-header">
+      <h1 data-text="title">Token Usage Badge</h1>
+      <button type="button" id="refresh" data-text="refresh" disabled>Refresh</button>
+    </header>
+    <section class="usage-panel" aria-labelledby="total-label">
+      <div class="period-bar" role="group" aria-label="Usage period">
+        <button type="button" data-days="1" data-text="today" aria-pressed="true" disabled>Today</button>
+        <button type="button" data-days="7" data-text="week" aria-pressed="false" disabled>Last 7 days</button>
+        <button type="button" data-days="30" data-text="month" aria-pressed="false" disabled>Last 30 days</button>
+      </div>
+      <div class="summary">
+        <div>
+          <p id="total-label" data-text="total">Total tokens</p>
+          <p id="total" class="token-number total">—</p>
+          <p id="dates" class="dates"></p>
+        </div>
+        <dl class="breakdown">
+          <div><dt data-text="input">Uncached input</dt><dd id="input" class="token-number">—</dd></div>
+          <div><dt data-text="output">Output</dt><dd id="output" class="token-number">—</dd></div>
+          <div><dt data-text="cacheRead">Cache reads</dt><dd id="cache-read" class="token-number">—</dd></div>
+          <div><dt data-text="cacheWrite">Cache writes</dt><dd id="cache-write" class="token-number">—</dd></div>
+        </dl>
+      </div>
+    </section>
+    <footer class="page-footer">
+      <p data-text="formula">Total includes cache reads and writes, matching Magpie Usage.</p>
+      <p id="status" role="status">Connecting to Magpie…</p>
+    </footer>
+  </main>
+</body>
+</html>
